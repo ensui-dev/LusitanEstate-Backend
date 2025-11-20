@@ -34,6 +34,9 @@ exports.getProperties = async (req, res) => {
       if (maxPrice) query.price.$lte = parseInt(maxPrice);
     }
 
+    // Only show approved properties in public listing
+    query.approvalStatus = 'approved';
+
     const properties = await Property.find(query)
       .populate('owner', 'name email phone')
       .populate('agent')
