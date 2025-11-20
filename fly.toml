@@ -5,11 +5,11 @@
 app = 'lusitanestate-backend'
 primary_region = 'cdg'
 
+[build]
+
 [env]
   PORT = '8080'
   NODE_ENV = 'production'
-
-[build]
 
 [http_service]
   internal_port = 8080
