@@ -28,7 +28,7 @@ Before you begin, ensure you have the following installed:
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Real-Estate-CMS-Backend.git
+git clone https://github.com/ensui-dev/Real-Estate-CMS-Backend.git
 cd Real-Estate-CMS-Backend
 ```
 
@@ -432,10 +432,6 @@ Real-Estate-CMS-Backend/
 ├── BACKEND-DEPLOYMENT.md        # Deployment guide
 └── README.md
 ```
-
-## 🚀 Deployment to Fly.io
-
-See [BACKEND-DEPLOYMENT.md](BACKEND-DEPLOYMENT.md) for detailed deployment instructions.
 
 **Quick deployment:**
 
