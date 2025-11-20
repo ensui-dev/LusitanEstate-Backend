@@ -1,496 +1,566 @@
-# Portuguese Real Estate CMS API
+# Portuguese Real Estate CMS - Backend API
 
-A comprehensive full-stack RESTful API and Content Management System for Portuguese real estate market, built with the MERN stack (MongoDB, Express, React, Node.js).
+A comprehensive RESTful API backend for managing real estate listings in Portugal. Built with Node.js, Express, and MongoDB, featuring Portuguese market-specific functionality including IMT tax calculations, energy certificates, and support for all 20 Portuguese districts.
 
-## Quick Start
+## 🚀 Features
+
+- **Complete REST API** with full CRUD operations
+- **JWT Authentication** with role-based access control (Buyer, Seller, Agent, Admin)
+- **8 Database Models** including User, Property, Agent, Agency, Inquiry, Review, Favorite, and Settings
+- **Portuguese Market Integration** - IMT calculator, 20 districts, energy certificates
+- **Admin CMS** with dashboard, user management, and property approval workflow
+- **Agency Management System** with subscription tiers and verification
+- **Advanced Property Filtering** by district, type, price, features
+- **MongoDB Atlas** ready with connection string configuration
+- **Fly.io Deployment** ready with included configuration
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
+- **npm** (comes with Node.js)
+- **MongoDB Atlas Account** (free tier available) - [Sign up here](https://www.mongodb.com/cloud/atlas)
+- **Git** - [Download here](https://git-scm.com/)
+
+## 🛠️ Installation & Setup
+
+### Step 1: Clone the Repository
 
 ```bash
-# Install dependencies
+git clone https://github.com/YOUR_USERNAME/Real-Estate-CMS-Backend.git
+cd Real-Estate-CMS-Backend
+```
+
+### Step 2: Install Dependencies
+
+```bash
 npm install
+```
 
-# Set up environment variables
+This will install all required packages:
+- express (Web framework)
+- mongoose (MongoDB ODM)
+- jsonwebtoken (JWT authentication)
+- bcryptjs (Password hashing)
+- cors (Cross-origin resource sharing)
+- dotenv (Environment variables)
+- express-validator (Input validation)
+
+### Step 3: Set Up MongoDB Atlas
+
+#### 3.1 Create a Free MongoDB Cluster
+
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Sign up or log in
+3. Click "Create a New Cluster"
+4. Choose **FREE M0 tier**
+5. Select **AWS** or **Azure**
+6. Choose region: **Frankfurt (eu-central-1)** or **Ireland (eu-west-1)** (closest to Portugal)
+7. Cluster Name: `real-estate-cms`
+8. Click "Create Cluster" (takes 3-5 minutes)
+
+#### 3.2 Create Database User
+
+1. In Atlas, go to **Database Access** (left sidebar)
+2. Click **"Add New Database User"**
+3. Authentication Method: **Password**
+4. Username: `realestate-admin` (or your choice)
+5. Password: Click "Autogenerate Secure Password" and **SAVE IT**
+6. Database User Privileges: **Read and write to any database**
+7. Click **"Add User"**
+
+#### 3.3 Configure Network Access
+
+1. Go to **Network Access** (left sidebar)
+2. Click **"Add IP Address"**
+3. Click **"Allow Access from Anywhere"** (0.0.0.0/0)
+   - This is safe - MongoDB Atlas has built-in security
+   - Required for Fly.io and other cloud deployments
+4. Click **"Confirm"**
+
+#### 3.4 Get Connection String
+
+1. Go to **Database** → Click **"Connect"**
+2. Choose **"Connect your application"**
+3. Driver: **Node.js**, Version: **4.1 or later**
+4. Copy the connection string (looks like):
+   ```
+   mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+   ```
+5. Replace `<username>` with your username (e.g., `realestate-admin`)
+6. Replace `<password>` with your saved password
+7. Add database name after `.net/`: `/real-estate-cms`
+
+**Final connection string example:**
+```
+mongodb+srv://realestate-admin:YourPassword123@cluster0.abc123.mongodb.net/real-estate-cms?retryWrites=true&w=majority
+```
+
+### Step 4: Configure Environment Variables
+
+Create a `.env` file in the root directory:
+
+```bash
 cp .env.example .env
-# Edit .env with your MongoDB URI and JWT secret
+```
 
-# Start development server
+Edit the `.env` file with your configuration:
+
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=5000
+
+# MongoDB Atlas Connection String
+# Paste your connection string from Step 3.4 here
+MONGODB_URI=mongodb+srv://realestate-admin:YourPassword123@cluster0.abc123.mongodb.net/real-estate-cms?retryWrites=true&w=majority
+
+# JWT Secret Key
+# Generate a secure random key: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+JWT_SECRET=your_generated_super_long_random_secret_key_here_at_least_32_characters
+JWT_EXPIRE=30d
+
+# Frontend URL (for CORS)
+# Development: http://localhost:3000
+# Production: https://your-frontend.netlify.app
+CLIENT_URL=http://localhost:3000
+```
+
+**IMPORTANT:**
+- Never commit your `.env` file to Git (it's already in `.gitignore`)
+- Generate a strong JWT secret using the command above
+
+### Step 5: Generate JWT Secret
+
+Run this command to generate a secure JWT secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+Copy the output and paste it as your `JWT_SECRET` in the `.env` file.
+
+## 🚦 Running the Application
+
+### Development Mode
+
+Start the server with automatic restart on file changes:
+
+```bash
 npm run dev
+```
 
-# Start production server
+The API will be available at: `http://localhost:5000`
+
+### Production Mode
+
+```bash
 npm start
 ```
 
-## API Documentation
+### Verify It's Working
 
-The API will be running at `http://localhost:5000`
+Visit `http://localhost:5000` in your browser. You should see:
 
-### Quick Test
-
-Visit `http://localhost:5000` to see the welcome message with all available endpoints.
-
-### Authentication
-
-Most endpoints require authentication. Include the JWT token in the Authorization header:
-
+```json
+{
+  "success": true,
+  "message": "Welcome to Portuguese Real Estate CMS API",
+  "version": "2.0.0",
+  "description": "Comprehensive real estate listing and CMS platform for Portugal",
+  "endpoints": {
+    "auth": "/api/auth",
+    "properties": "/api/properties",
+    "agents": "/api/agents",
+    "agencies": "/api/agencies",
+    ...
+  }
+}
 ```
-Authorization: Bearer <your_jwt_token>
+
+## 📚 API Endpoints
+
+### Authentication (`/api/auth`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | `/api/auth/register` | Register new user | Public |
+| POST | `/api/auth/login` | Login user | Public |
+| GET | `/api/auth/me` | Get current user | Private |
+| PUT | `/api/auth/updateprofile` | Update user profile | Private |
+
+### Properties (`/api/properties`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/properties` | Get all approved properties | Public |
+| GET | `/api/properties/:id` | Get single property | Public |
+| POST | `/api/properties` | Create property | Private (Seller/Agent/Admin) |
+| PUT | `/api/properties/:id` | Update property | Private (Owner/Admin) |
+| DELETE | `/api/properties/:id` | Delete property | Private (Owner/Admin) |
+| GET | `/api/properties/user/my-properties` | Get user's properties | Private |
+
+### Agents (`/api/agents`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/agents` | Get all agents | Public |
+| GET | `/api/agents/:id` | Get agent profile | Public |
+| POST | `/api/agents` | Create agent profile | Private |
+| PUT | `/api/agents/:id` | Update agent | Private (Owner/Admin) |
+
+### Agencies (`/api/agencies`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/agencies` | Get all agencies | Public |
+| GET | `/api/agencies/:id` | Get agency details | Public |
+| POST | `/api/agencies` | Create agency | Private (Admin) |
+| PUT | `/api/agencies/:id` | Update agency | Private (Manager/Admin) |
+| PUT | `/api/agencies/:id/verify` | Verify agency | Private (Admin) |
+| GET | `/api/agencies/:id/stats` | Get agency statistics | Private (Manager/Admin) |
+
+### Admin (`/api/admin`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/admin/dashboard` | Get dashboard stats | Admin |
+| GET | `/api/admin/users` | Get all users | Admin |
+| PUT | `/api/admin/users/:id/role` | Update user role | Admin |
+| GET | `/api/admin/properties` | Get all properties | Admin |
+| PUT | `/api/admin/properties/:id/approve` | Approve property | Admin |
+| PUT | `/api/admin/properties/:id/reject` | Reject property | Admin |
+| PUT | `/api/admin/properties/bulk-approve` | Bulk approve | Admin |
+| GET | `/api/admin/settings` | Get settings | Admin |
+| PUT | `/api/admin/settings` | Update settings | Admin |
+
+### Inquiries (`/api/inquiries`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | `/api/inquiries` | Create inquiry | Private |
+| GET | `/api/inquiries/my-inquiries` | Get user's inquiries | Private |
+| GET | `/api/inquiries/property/:id` | Get property inquiries | Private (Owner/Agent) |
+
+### Reviews (`/api/reviews`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/reviews/property/:id` | Get property reviews | Public |
+| GET | `/api/reviews/agent/:id` | Get agent reviews | Public |
+| POST | `/api/reviews/property/:id` | Create property review | Private |
+| POST | `/api/reviews/agent/:id` | Create agent review | Private |
+
+### Favorites (`/api/favorites`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/favorites` | Get user's favorites | Private |
+| POST | `/api/favorites/properties/:id` | Add to favorites | Private |
+| DELETE | `/api/favorites/properties/:id` | Remove from favorites | Private |
+
+## 🧪 Testing the API
+
+### Using cURL
+
+**Register a new user:**
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "password": "senha123",
+    "role": "buyer"
+  }'
 ```
 
-## Key Features
+**Login:**
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "joao@example.com",
+    "password": "senha123"
+  }'
+```
 
-### Core Features
-- **User Authentication & Authorization**: JWT-based authentication with role-based access control
-- **Multi-Role System**: Buyer, Seller, Agent, and Admin roles with specific permissions
-- **Property Management**: Complete CRUD operations with approval workflow
-- **Agency Management**: Full agency system with subscription plans
-- **Agent Profiles**: Agent management with verification and performance tracking
-- **Admin Dashboard**: Comprehensive analytics and statistics
-- **CMS Settings**: Configurable system settings for complete customization
+**Get properties:**
+```bash
+curl http://localhost:5000/api/properties?district=Lisboa&limit=10
+```
 
-### Portuguese Market Specifics
-- **Portuguese Districts**: All 18 mainland districts + Açores and Madeira
-- **Energy Certificates**: Required energy certification (A+ to F rating)
-- **IMT Calculator**: Automatic calculation of Portuguese property transfer tax
-- **Stamp Duty**: Automatic calculation for mortgage transactions
-- **Portuguese Zip Codes**: Validation for format XXXX-XXX
-- **Square Meters**: Primary measurement (auto-converts to sq ft)
-- **Portuguese Property Types**: Apartment, villa, townhouse, commercial, etc.
+### Using Postman/Thunder Client/Insomnia
 
-### CMS Features
-- Property approval/rejection workflow
-- Bulk operations for property management
-- User management (CRUD for all users)
-- Agency verification system
-- Agent verification system
-- Subscription plan management
-- System-wide settings configuration
-- Real-time dashboard statistics
-- Analytics by district, property type, and price range
+1. Import the API endpoints
+2. Set `BASE_URL` variable to `http://localhost:5000/api`
+3. For protected routes, add header:
+   ```
+   Authorization: Bearer YOUR_JWT_TOKEN
+   ```
 
-## Main Endpoints
+## 🗄️ Database Models
 
-### Public Endpoints
-- **Auth**: `/api/auth`
-  - `POST /register` - User registration
-  - `POST /login` - User login
-  - `GET /me` - Get current user profile (protected)
-  - `PUT /updateprofile` - Update user profile (protected)
-
-- **Properties**: `/api/properties`
-  - `GET /` - Get all approved properties (with filtering)
-  - `GET /:id` - Get single property
-  - `POST /` - Create property (seller/agent/admin)
-  - `PUT /:id` - Update property (owner/admin)
-  - `DELETE /:id` - Delete property (owner/admin)
-
-- **Agents**: `/api/agents`
-  - `GET /` - Get all verified agents
-  - `GET /:id` - Get agent profile
-  - `POST /` - Create agent profile (protected)
-  - `PUT /:id` - Update agent profile (owner/admin)
-
-- **Agencies**: `/api/agencies`
-  - `GET /` - Get all agencies
-  - `GET /:id` - Get agency details
-  - `GET /:id/stats` - Get agency statistics (manager/admin)
-  - `POST /` - Create agency (admin only)
-  - `PUT /:id` - Update agency (manager/admin)
-
-### Protected Endpoints (Authenticated Users)
-- **Favorites**: `/api/favorites`
-  - `GET /` - Get user favorites
-  - `POST /properties/:propertyId` - Add property to favorites
-  - `DELETE /properties/:propertyId` - Remove from favorites
-  - `POST /searches` - Save search criteria
-  - `DELETE /searches/:searchId` - Delete saved search
-
-- **Inquiries**: `/api/inquiries`
-  - `POST /` - Create inquiry
-  - `GET /my-inquiries` - Get user's inquiries
-  - `GET /property/:propertyId` - Get inquiries for property (owner/agent)
-  - `PUT /:id` - Update inquiry (owner/agent)
-
-- **Reviews**: `/api/reviews`
-  - `GET /property/:propertyId` - Get property reviews
-  - `GET /agent/:agentId` - Get agent reviews
-  - `POST /property/:propertyId` - Create property review
-  - `POST /agent/:agentId` - Create agent review
-  - `PUT /:id` - Update review (owner)
-  - `DELETE /:id` - Delete review (owner/admin)
-
-### Admin Endpoints (Admin Only)
-- **Admin Dashboard**: `/api/admin`
-  - `GET /dashboard` - Get comprehensive dashboard statistics
-  - `GET /users` - Get all users (with filtering & pagination)
-  - `PUT /users/:id/role` - Update user role
-  - `DELETE /users/:id` - Delete user
-  - `GET /properties` - Get all properties (with admin filters)
-  - `PUT /properties/:id/approve` - Approve property
-  - `PUT /properties/:id/reject` - Reject property
-  - `PUT /properties/bulk-approve` - Bulk approve properties
-  - `DELETE /properties/:id` - Delete property
-  - `GET /settings` - Get system settings
-  - `PUT /settings` - Update system settings
-
-- **Agency Management**: `/api/agencies` (Admin)
-  - `PUT /:id/verify` - Verify agency
-  - `PUT /:id/unverify` - Remove verification
-  - `DELETE /:id` - Delete agency
-  - `POST /:id/agents` - Add agent to agency
-  - `DELETE /:id/agents/:agentId` - Remove agent from agency
-
-## Database Models
-
-### User Model
-- Fields: name, email, password (hashed), role, phone, profilePicture
+### User
+- name, email, password (hashed), role, phone, profilePicture
 - Roles: buyer, seller, agent, admin
-- Authentication: bcryptjs password hashing, JWT tokens
 
-### Property Model (Enhanced for Portugal)
-- **Basic Info**: title, description, price, propertyType, status
-- **Location**: street, city, district (20 Portuguese districts), zipCode, coordinates
-- **Details**: bedrooms, bathrooms, squareMeters (primary), squareFeet (auto-calculated)
-- **Portuguese Specifics**:
-  - Energy certificate (rating, validUntil, certificateNumber)
-  - Property condition (new, excellent, good, fair, needs-renovation)
-  - IMT calculations (estimated tax, rate)
-  - Condominium fees
-- **Features**: 28 Portuguese-specific amenities (elevator, balcony, pool, etc.)
-- **Media**: images, virtual tour URL, video URL, floor plans
-- **Admin**: approvalStatus, rejectionReason, approvedBy, approvedAt
-- **SEO**: slug, metaDescription, metaKeywords
-- **Stats**: views, inquiries, favorites
+### Property
+- title, description, price, propertyType, status
+- Portuguese specifics: district, energyCertificate, squareMeters, IMT
+- Admin: approvalStatus, rejectionReason
+- Relations: owner, agent, agency
 
-### Agency Model (NEW)
-- **Basic Info**: name, licenseNumber (AMI), email, phone, website, logo
-- **Location**: Full Portuguese address with district validation
-- **Management**: manager (User ref), agents array
-- **Subscription**: plan (free/basic/premium/enterprise), limits
-- **Metrics**: totalProperties, activeProperties, totalSales
-- **Status**: isActive, isVerified, verifiedAt
-- **Social Media**: facebook, instagram, linkedin, twitter
-- **Ratings**: average rating, total reviews
+### Agency
+- name, licenseNumber (AMI), contact info, address
+- manager (User), agents array
+- subscription: plan, limits
+- Verification status
 
-### Agent Model (Enhanced)
-- **References**: user (User ref), agency (Agency ref - NEW)
-- **Credentials**: licenseNumber (AMI), specialization
-- **Profile**: bio, yearsOfExperience, languages (Portuguese, English, etc.)
-- **Performance**: averageRating, totalReviews, totalSales, totalRentals
-- **Verification**: isVerified, verifiedBy, verifiedAt
-- **Status**: isActive, availability
+### Agent
+- user (User ref), agency (Agency ref)
+- licenseNumber (AMI), specialization, languages
+- Performance: ratings, totalSales
 
-### Settings Model (NEW - CMS Configuration)
-- **Site Information**: name, description, logo, contact details
-- **SEO Settings**: meta tags, analytics IDs (Google, Facebook)
-- **Email Settings**: provider, SMTP configuration
-- **Property Settings**: approval requirements, max images, featured duration
-- **Subscription Plans**: pricing, limits for each tier
-- **Agent/Agency Settings**: verification requirements
-- **Notifications**: email alerts configuration
-- **Map Settings**: provider, API keys, default center (Lisbon)
-- **File Upload**: size limits, allowed types
-- **Localization**: language, timezone (Europe/Lisbon), currency (EUR)
-- **Maintenance Mode**: enabled, message, allowed IPs
-- **Legal**: terms, privacy policy, GDPR compliance
+### Inquiry
+- Property inquiries with status tracking
+- Types: viewing, information, offer, general
 
-### Additional Models
-- **Inquiry**: Property inquiries with status tracking
-- **Review**: Property and agent reviews (1-5 stars)
-- **Favorite**: User favorites and saved searches
+### Review
+- Property and agent reviews (1-5 stars)
+- One review per user per property/agent
 
-## Portuguese Utilities
+### Favorite
+- User's favorite properties and saved searches
 
-### IMT Calculator (`src/utils/portugueseUtils.js`)
-Calculates Portuguese Property Transfer Tax (Imposto Municipal sobre Transmissões):
+### Settings
+- CMS configuration (singleton document)
+- Site settings, subscription plans, email config
+
+## 🇵🇹 Portuguese Market Features
+
+### IMT Calculator
+
+Located in `src/utils/portugueseUtils.js`:
 
 ```javascript
 const { calculateIMT } = require('./utils/portugueseUtils');
 
-// Example: Calculate IMT for a €250,000 residential property in Lisbon
-const result = calculateIMT(250000, 'residential', 'mainland');
-// Returns: { imt: 8475.00, rate: 3.39, propertyValue: 250000, ... }
+const result = calculateIMT(300000, 'residential', 'mainland');
+// Returns: { imt: 16025, rate: 5.34, formatted: "€16,025.00" }
 ```
 
-**Supported property types:**
-- `residential` - Primary residence (progressive rates 0-6%)
-- `secondary-home` - Secondary/urban property (progressive rates 1-6%)
-- `commercial` - Commercial property (flat 6.5%)
-- `land` - Land (flat 6.5%)
+### 20 Portuguese Districts
 
-**Locations:**
-- `mainland` - Continental Portugal (standard rates)
-- `madeira` - Madeira islands (20% reduction)
-- `azores` - Azores islands (20% reduction)
+All properties must specify one of:
+- Aveiro, Beja, Braga, Bragança, Castelo Branco
+- Coimbra, Évora, Faro, Guarda, Leiria
+- Lisboa, Portalegre, Porto, Santarém, Setúbal
+- Viana do Castelo, Vila Real, Viseu
+- Açores, Madeira
 
-### Other Utilities
-- `calculateStampDuty(loanAmount)` - 0.6% of mortgage amount
-- `portugueseDistricts` - Complete list of 20 Portuguese districts with cities
-- `getDistrictInfo(name)` - Get district details
-- `getCitiesByDistrict(name)` - Get cities in a district
-- `validatePortugueseZipCode(zipCode)` - Validate XXXX-XXX format
-- `formatPortuguesePrice(amount)` - Format as EUR currency
-- `squareMetersToFeet(sqm)` / `squareFeetToMeters(sqft)` - Unit conversion
+### Energy Certificates
 
-## Project Structure
+Required by Portuguese law:
+- Ratings: A+, A, B, B-, C, D, E, F
+- Includes validity date and certificate number
+
+### Property Types
+
+15 Portuguese property types including:
+- Apartment, House, Villa, Townhouse, Penthouse
+- Commercial, Office, Warehouse, Retail
+- Land, Farm, Garage
+
+## 🔒 Security Features
+
+- **Password Hashing** - bcryptjs with salt rounds
+- **JWT Tokens** - Secure authentication
+- **Role-Based Access Control** - 4 user roles
+- **Input Validation** - Mongoose validators + express-validator
+- **CORS Protection** - Configured for specific frontend origin
+- **Error Handling** - Centralized error middleware
+- **MongoDB Injection Protection** - Mongoose sanitization
+
+## 📁 Project Structure
 
 ```
-Real-Estate-Listing-API/
+Real-Estate-CMS-Backend/
 ├── src/
 │   ├── config/
-│   │   └── database.js           # MongoDB connection
+│   │   └── database.js          # MongoDB connection
 │   ├── controllers/
-│   │   ├── authController.js     # Authentication logic
-│   │   ├── propertyController.js # Property CRUD
-│   │   ├── agentController.js    # Agent management
-│   │   ├── agencyController.js   # Agency management (NEW)
-│   │   ├── adminController.js    # Admin CMS features (NEW)
-│   │   ├── inquiryController.js  # Inquiry handling
-│   │   ├── reviewController.js   # Review system
-│   │   └── favoriteController.js # Favorites & saved searches
+│   │   ├── authController.js
+│   │   ├── propertyController.js
+│   │   ├── agentController.js
+│   │   ├── agencyController.js
+│   │   ├── adminController.js
+│   │   ├── inquiryController.js
+│   │   ├── reviewController.js
+│   │   └── favoriteController.js
 │   ├── middleware/
-│   │   ├── auth.js              # JWT & role authorization
-│   │   ├── validation.js        # Request validation
-│   │   └── errorHandler.js      # Centralized error handling
+│   │   ├── auth.js              # JWT & authorization
+│   │   ├── validation.js
+│   │   └── errorHandler.js
 │   ├── models/
-│   │   ├── User.js              # User schema
-│   │   ├── Property.js          # Enhanced property schema
-│   │   ├── Agent.js             # Enhanced agent schema
-│   │   ├── Agency.js            # Agency schema (NEW)
-│   │   ├── Settings.js          # CMS settings (NEW)
-│   │   ├── Inquiry.js           # Inquiry schema
-│   │   ├── Review.js            # Review schema
-│   │   └── Favorite.js          # Favorite schema
+│   │   ├── User.js
+│   │   ├── Property.js
+│   │   ├── Agent.js
+│   │   ├── Agency.js
+│   │   ├── Settings.js
+│   │   ├── Inquiry.js
+│   │   ├── Review.js
+│   │   └── Favorite.js
 │   ├── routes/
-│   │   ├── authRoutes.js        # Auth endpoints
-│   │   ├── propertyRoutes.js    # Property endpoints
-│   │   ├── agentRoutes.js       # Agent endpoints
-│   │   ├── agencyRoutes.js      # Agency endpoints (NEW)
-│   │   ├── adminRoutes.js       # Admin endpoints (NEW)
-│   │   ├── inquiryRoutes.js     # Inquiry endpoints
-│   │   ├── reviewRoutes.js      # Review endpoints
-│   │   └── favoriteRoutes.js    # Favorite endpoints
+│   │   ├── authRoutes.js
+│   │   ├── propertyRoutes.js
+│   │   ├── agentRoutes.js
+│   │   ├── agencyRoutes.js
+│   │   ├── adminRoutes.js
+│   │   ├── inquiryRoutes.js
+│   │   ├── reviewRoutes.js
+│   │   └── favoriteRoutes.js
 │   ├── utils/
-│   │   ├── generateToken.js     # JWT generation
-│   │   └── portugueseUtils.js   # Portuguese market utilities (NEW)
+│   │   ├── generateToken.js
+│   │   └── portugueseUtils.js   # IMT calculator, districts
 │   └── server.js                # Express app setup
-├── .env                         # Environment variables
+├── .env.example
 ├── .gitignore
 ├── package.json
+├── fly.toml                     # Fly.io deployment config
+├── BACKEND-DEPLOYMENT.md        # Deployment guide
 └── README.md
 ```
 
-## MERN Project Requirements Compliance
+## 🚀 Deployment to Fly.io
 
-This project meets all requirements for the MERN Web Application project:
+See [BACKEND-DEPLOYMENT.md](BACKEND-DEPLOYMENT.md) for detailed deployment instructions.
 
-✅ **SPA Frontend Ready**: Backend API supports full React frontend integration
-✅ **REST API with CRUD**: Complete CRUD operations on multiple models
-✅ **3+ Database Models**: User, Property, Agent, Agency, Inquiry, Review, Favorite, Settings (8 models)
-✅ **Authentication**: JWT-based auth with encrypted passwords (bcryptjs)
-✅ **Authorization**: Role-based access control (buyer, seller, agent, admin)
-✅ **Backend Validation**: Mongoose schema validation + custom validation
-✅ **Centralized Error Handling**: Global error handler middleware
-✅ **GitHub Ready**: Clean commit history, modular code structure
-✅ **Deployment Ready**: Environment-based configuration for Fly.io/Netlify
-✅ **Documentation**: Comprehensive README with API documentation
+**Quick deployment:**
 
-### Additional Excellence Features
-- Portuguese market-specific functionality (IMT, energy certificates, districts)
-- Admin CMS dashboard with analytics
-- Agency management system
-- Subscription/plan support
-- Property approval workflow
-- Bulk operations
-- SEO optimization (slugs, meta tags)
-- Advanced filtering and search
-- Statistics and reporting
-
-## Tech Stack
-
-- **Backend**: Node.js + Express.js
-- **Database**: MongoDB + Mongoose ODM
-- **Authentication**: JWT (jsonwebtoken) + bcryptjs
-- **Validation**: Mongoose validators + express-validator
-- **Security**: CORS enabled, password hashing
-- **Portuguese Market**: Custom utilities for IMT, districts, energy certificates
-
-## Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Server
-NODE_ENV=development
-PORT=5000
-
-# Database
-MONGODB_URI=mongodb://localhost:27017/real-estate-cms
-
-# JWT
-JWT_SECRET=your_jwt_secret_key_here
-JWT_EXPIRE=30d
-
-# Optional: Email configuration for notifications
-EMAIL_PROVIDER=smtp
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=your_email@example.com
-SMTP_PASSWORD=your_password
-```
-
-## Installation & Setup
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd Real-Estate-Listing-API
-```
-
-2. **Install dependencies**
-```bash
-npm install
-```
-
-3. **Set up environment variables**
-```bash
-cp .env.example .env
-# Edit .env with your MongoDB URI and JWT secret
-```
-
-4. **Start MongoDB** (if running locally)
-```bash
-# Using MongoDB service
-sudo systemctl start mongod
-
-# Or using Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
-```
-
-5. **Run the development server**
-```bash
-npm run dev
-```
-
-6. **Test the API**
-Visit `http://localhost:5000` to see the welcome message with all available endpoints.
-
-## Testing the API
-
-Use tools like Postman, Insomnia, or Thunder Client to test the endpoints.
-
-### Example: Create Admin User
-```bash
-POST http://localhost:5000/api/auth/register
-Content-Type: application/json
-
-{
-  "name": "Admin User",
-  "email": "admin@realestate.pt",
-  "password": "admin123",
-  "role": "admin"
-}
-```
-
-### Example: Create Agency
-```bash
-POST http://localhost:5000/api/agencies
-Authorization: Bearer <admin_jwt_token>
-Content-Type: application/json
-
-{
-  "name": "Premium Real Estate Lisboa",
-  "licenseNumber": "AMI-12345",
-  "email": "info@premiumre.pt",
-  "phone": "+351 21 123 4567",
-  "address": {
-    "street": "Avenida da Liberdade, 123",
-    "city": "Lisboa",
-    "district": "Lisboa",
-    "zipCode": "1250-001",
-    "country": "Portugal"
-  },
-  "manager": "<user_id>",
-  "description": "Leading real estate agency in Lisbon"
-}
-```
-
-### Example: Calculate IMT
-```javascript
-// In your application code
-const { calculateIMT } = require('./src/utils/portugueseUtils');
-
-const result = calculateIMT(300000, 'residential', 'mainland');
-console.log(`IMT to pay: €${result.imt}`);
-console.log(`Effective rate: ${result.rate}%`);
-```
-
-## Deployment
-
-### Backend (Fly.io)
 ```bash
 # Install Fly CLI
 curl -L https://fly.io/install.sh | sh
 
-# Login and deploy
-fly auth login
-fly launch
-fly deploy
+# Login
+flyctl auth login
+
+# Launch app
+flyctl launch
+
+# Set secrets
+flyctl secrets set MONGODB_URI="your_mongodb_connection_string"
+flyctl secrets set JWT_SECRET="your_generated_jwt_secret"
+flyctl secrets set CLIENT_URL="https://your-frontend.netlify.app"
+
+# Deploy
+flyctl deploy
 ```
 
-### Frontend (Netlify)
-- Build React frontend connecting to deployed API
-- Deploy via Netlify CLI or GitHub integration
+Your API will be live at: `https://your-app-name.fly.dev`
 
-## API Response Format
+## 🔧 Environment Variables Reference
 
-All API responses follow this consistent format:
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `NODE_ENV` | Yes | Environment mode | `development` or `production` |
+| `PORT` | Yes | Server port | `5000` (dev) or `8080` (production) |
+| `MONGODB_URI` | Yes | MongoDB connection string | `mongodb+srv://...` |
+| `JWT_SECRET` | Yes | JWT signing secret (min 32 chars) | Generate with crypto |
+| `JWT_EXPIRE` | No | JWT expiration time | `30d` (default) |
+| `CLIENT_URL` | Yes | Frontend URL for CORS | `http://localhost:3000` or production URL |
 
-### Success Response
-```json
-{
-  "success": true,
-  "data": { ... },
-  "count": 10,
-  "total": 100,
-  "page": 1,
-  "pages": 10
-}
+## 🐛 Troubleshooting
+
+### Cannot connect to MongoDB
+
+**Error:** `MongoServerError: bad auth`
+
+**Solution:**
+1. Check username and password in connection string
+2. Verify user exists in MongoDB Atlas → Database Access
+3. Ensure password doesn't contain special characters (or URL encode them)
+
+### CORS errors from frontend
+
+**Error:** `Access to fetch at '...' from origin '...' has been blocked by CORS`
+
+**Solution:**
+Update `CLIENT_URL` in `.env` to match your frontend URL exactly:
+```env
+CLIENT_URL=http://localhost:3000
 ```
 
-### Error Response
-```json
-{
-  "success": false,
-  "message": "Error description",
-  "errors": [ ... ]
-}
+### Port already in use
+
+**Error:** `Error: listen EADDRINUSE: address already in use :::5000`
+
+**Solution:**
+```bash
+# Find process using port 5000
+lsof -i :5000
+
+# Kill the process
+kill -9 <PID>
+
+# Or use a different port
+PORT=5001 npm run dev
 ```
 
-## Contributing
+### JWT authentication fails
 
-Contributions are welcome! Please follow these steps:
+**Error:** `JsonWebTokenError: invalid token`
+
+**Solution:**
+1. Ensure JWT_SECRET is set in `.env`
+2. Check token is sent in header: `Authorization: Bearer <token>`
+3. Verify token hasn't expired
+4. Clear browser localStorage and login again
+
+## 📊 Monitoring & Logs
+
+### View logs (Fly.io)
+```bash
+flyctl logs
+```
+
+### Check MongoDB Atlas
+1. Go to MongoDB Atlas Dashboard
+2. Click **Metrics** tab
+3. Monitor connections, queries, storage
+
+### API Health Check
+```bash
+curl http://localhost:5000/
+```
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License.
 
-## Support
+## 📞 Support
 
-For issues and questions:
-- Create an issue in the GitHub repository
-- Contact: support@realestate-cms.pt
+For issues, questions, or contributions:
+- **GitHub Issues:** [Create an issue](https://github.com/ensui-dev/Real-Estate-CMS-Backend/issues)
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
-- Portuguese real estate regulations and tax calculations
-- AMI (Associação de Mediadores Imobiliários) - Portuguese Real Estate Association
-- MERN stack community
+- **MongoDB Atlas** - Database hosting
+- **Fly.io** - Application hosting
+- **AMI Portugal** - Real estate regulations reference
+- **Portuguese Tax Authority** - IMT calculation rules
 
 ---
 
-**Built with ❤️ for the Portuguese real estate market**
+**Built for the Portuguese real estate market with ❤️**
+
+Need the frontend? Check out the [Frontend Repository](https://github.com/ensui-dev/Real-Estate-CMS-Frontend)
