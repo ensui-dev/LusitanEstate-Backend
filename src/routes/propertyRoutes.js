@@ -7,7 +7,7 @@ const {
   deleteProperty,
   getMyProperties
 } = require('../controllers/propertyController');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router.route('/')
 router.get('/user/my-properties', protect, getMyProperties);
 
 router.route('/:id')
-  .get(getProperty)
+  .get(optionalAuth, getProperty)
   .put(protect, updateProperty)
   .delete(protect, deleteProperty);
 

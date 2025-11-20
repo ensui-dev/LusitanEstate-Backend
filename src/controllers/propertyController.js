@@ -57,7 +57,7 @@ exports.getProperties = async (req, res) => {
 
 // @desc    Get single property
 // @route   GET /api/properties/:id
-// @access  Public
+// @access  Public (but restricted for non-approved properties)
 exports.getProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id)
@@ -69,6 +69,28 @@ exports.getProperty = async (req, res) => {
         success: false,
         message: 'Property not found'
       });
+    }
+
+    // If property is not approved, only owner and admin can view it
+    if (property.approvalStatus !== 'approved') {
+      // Check if user is authenticated
+      if (!req.user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Property not found'
+        });
+      }
+
+      // Check if user is owner or admin
+      const isOwner = property.owner._id.toString() === req.user._id.toString();
+      const isAdmin = req.user.role === 'admin';
+
+      if (!isOwner && !isAdmin) {
+        return res.status(404).json({
+          success: false,
+          message: 'Property not found'
+        });
+      }
     }
 
     res.status(200).json({
