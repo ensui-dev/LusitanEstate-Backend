@@ -1,7 +1,7 @@
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const { S3Client } = require('@aws-sdk/client-s3');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const path = require('path');
 
 // Validate AWS configuration
@@ -64,7 +64,7 @@ const upload = multer({
     key: (req, file, cb) => {
       // Generate unique filename: properties/uuid-timestamp.ext
       const fileExtension = path.extname(file.originalname);
-      const fileName = `properties/${uuidv4()}-${Date.now()}${fileExtension}`;
+      const fileName = `properties/${crypto.randomUUID()}-${Date.now()}${fileExtension}`;
       cb(null, fileName);
     }
   }),
