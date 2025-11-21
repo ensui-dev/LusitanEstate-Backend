@@ -13,6 +13,7 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // Connect to database
 connectDB();
@@ -34,6 +35,7 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Welcome route
 app.get('/', (req, res) => {
@@ -50,7 +52,8 @@ app.get('/', (req, res) => {
       favorites: '/api/favorites',
       inquiries: '/api/inquiries',
       reviews: '/api/reviews',
-      admin: '/api/admin (Admin only)'
+      admin: '/api/admin (Admin only)',
+      upload: '/api/upload (Authenticated users)'
     },
     features: [
       'Portuguese market specifics (Districts, Energy Certificates, IMT)',

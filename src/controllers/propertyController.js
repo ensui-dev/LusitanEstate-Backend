@@ -110,6 +110,23 @@ exports.getProperty = async (req, res) => {
 // @access  Private (seller, agent, admin)
 exports.createProperty = async (req, res) => {
   try {
+    // Validate that at least one image is provided
+    if (!req.body.images || req.body.images.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one property image is required'
+      });
+    }
+
+    // Validate that all images have URLs
+    const validImages = req.body.images.filter(img => img.url && img.url.trim() !== '');
+    if (validImages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one valid property image is required'
+      });
+    }
+
     // Add user as owner
     req.body.owner = req.user._id;
 

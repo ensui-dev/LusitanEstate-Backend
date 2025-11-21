@@ -150,14 +150,26 @@ const propertySchema = new mongoose.Schema({
     ]
   }],
   // Images and media
-  images: [{
-    url: String,
-    caption: String,
-    isPrimary: {
-      type: Boolean,
-      default: false
+  images: {
+    type: [{
+      url: {
+        type: String,
+        required: [true, 'Image URL is required']
+      },
+      caption: String,
+      key: String, // S3 key for deletion
+      isPrimary: {
+        type: Boolean,
+        default: false
+      }
+    }],
+    validate: {
+      validator: function(images) {
+        return images && images.length > 0;
+      },
+      message: 'At least one property image is required'
     }
-  }],
+  },
   virtualTourUrl: String,
   videoUrl: String,
   // Floor plans
