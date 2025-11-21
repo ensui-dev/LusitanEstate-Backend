@@ -14,6 +14,7 @@ exports.getProperties = async (req, res) => {
       bathrooms,
       city,
       state,
+      district,
       features
     } = req.query;
 
@@ -24,6 +25,7 @@ exports.getProperties = async (req, res) => {
     if (status) query.status = status;
     if (city) query['address.city'] = new RegExp(city, 'i');
     if (state) query['address.state'] = new RegExp(state, 'i');
+    if (district) query['address.district'] = new RegExp(district, 'i');
     if (bedrooms) query.bedrooms = { $gte: parseInt(bedrooms) };
     if (bathrooms) query.bathrooms = { $gte: parseInt(bathrooms) };
     if (features) query.features = { $in: features.split(',') };
@@ -45,6 +47,7 @@ exports.getProperties = async (req, res) => {
     res.status(200).json({
       success: true,
       count: properties.length,
+      total: properties.length,
       data: properties
     });
   } catch (error) {
