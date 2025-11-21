@@ -112,8 +112,8 @@ const propertySchema = new mongoose.Schema({
   energyCertificate: {
     rating: {
       type: String,
-      enum: ['A+', 'A', 'B', 'B-', 'C', 'D', 'E', 'F', 'Exempt', 'Pending'],
-      default: 'Pending'
+      enum: ['A+', 'A', 'B', 'B-', 'C', 'D', 'E', 'F', 'Isento', 'Pendente'],
+      default: 'Pendente'
     },
     validUntil: Date,
     certificateNumber: String
