@@ -11,7 +11,12 @@ const {
   bulkApproveProperties,
   deleteProperty,
   getSettings,
-  updateSettings
+  updateSettings,
+  getAllInquiries,
+  getInquiry,
+  respondToInquiry,
+  closeInquiry,
+  deleteInquiry
 } = require('../controllers/adminController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -38,5 +43,12 @@ router.delete('/properties/:id', deleteProperty);
 // Settings
 router.get('/settings', getSettings);
 router.put('/settings', updateSettings);
+
+// Inquiry management
+router.get('/inquiries', getAllInquiries);
+router.get('/inquiries/:id', getInquiry);
+router.put('/inquiries/:id/respond', respondToInquiry);
+router.put('/inquiries/:id/close', closeInquiry);
+router.delete('/inquiries/:id', deleteInquiry);
 
 module.exports = router;

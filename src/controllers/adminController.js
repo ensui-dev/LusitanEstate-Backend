@@ -554,4 +554,180 @@ exports.updateSettings = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get all inquiries with filtering and pagination
+ * @route   GET /api/admin/inquiries
+ * @access  Private/Admin
+ */
+exports.getAllInquiries = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    // Build filter
+    const filter = {};
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+    if (req.query.inquiryType) {
+      filter.inquiryType = req.query.inquiryType;
+    }
+    if (req.query.search) {
+      filter.$or = [
+        { name: { $regex: req.query.search, $options: 'i' } },
+        { email: { $regex: req.query.search, $options: 'i' } },
+        { message: { $regex: req.query.search, $options: 'i' } }
+      ];
+    }
+
+    const inquiries = await Inquiry.find(filter)
+      .populate('property', 'title address price images')
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Inquiry.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      count: inquiries.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: inquiries
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get single inquiry
+ * @route   GET /api/admin/inquiries/:id
+ * @access  Private/Admin
+ */
+exports.getInquiry = async (req, res, next) => {
+  try {
+    const inquiry = await Inquiry.findById(req.params.id)
+      .populate('property', 'title address price images owner')
+      .populate('user', 'name email phone');
+
+    if (!inquiry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inquiry not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: inquiry
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Respond to inquiry
+ * @route   PUT /api/admin/inquiries/:id/respond
+ * @access  Private/Admin
+ */
+exports.respondToInquiry = async (req, res, next) => {
+  try {
+    const { response } = req.body;
+
+    if (!response || !response.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a response'
+      });
+    }
+
+    const inquiry = await Inquiry.findByIdAndUpdate(
+      req.params.id,
+      {
+        response,
+        status: 'responded',
+        respondedAt: Date.now()
+      },
+      { new: true, runValidators: true }
+    ).populate('property', 'title').populate('user', 'name email');
+
+    if (!inquiry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inquiry not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Response sent successfully',
+      data: inquiry
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Close inquiry
+ * @route   PUT /api/admin/inquiries/:id/close
+ * @access  Private/Admin
+ */
+exports.closeInquiry = async (req, res, next) => {
+  try {
+    const inquiry = await Inquiry.findByIdAndUpdate(
+      req.params.id,
+      { status: 'closed' },
+      { new: true, runValidators: true }
+    );
+
+    if (!inquiry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inquiry not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Inquiry closed',
+      data: inquiry
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Delete inquiry
+ * @route   DELETE /api/admin/inquiries/:id
+ * @access  Private/Admin
+ */
+exports.deleteInquiry = async (req, res, next) => {
+  try {
+    const inquiry = await Inquiry.findById(req.params.id);
+
+    if (!inquiry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inquiry not found'
+      });
+    }
+
+    await inquiry.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: 'Inquiry deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = exports;
