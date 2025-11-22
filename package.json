@@ -1,7 +1,7 @@
 {
-  "name": "mini-project-rest-api",
+  "name": "lusitanestate-api",
   "version": "1.0.0",
-  "description": "Real Estate Listing API with Node.js, Express, and MongoDB",
+  "description": "LusitanEstate - Real Estate Listing API for Portugal",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

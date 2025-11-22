@@ -47,9 +47,9 @@ app.use('/api/upload', uploadRoutes);
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Welcome to Portuguese Real Estate CMS API',
+    message: 'Welcome to LusitanEstate API',
     version: '2.0.0',
-    description: 'Comprehensive real estate listing and CMS platform for Portugal',
+    description: 'LusitanEstate - Professional real estate platform for Portugal',
     endpoints: {
       auth: '/api/auth',
       properties: '/api/properties',
