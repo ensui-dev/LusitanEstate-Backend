@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
+const { startCleanupScheduler } = require('./jobs/cleanupUnverifiedUsers');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -80,6 +81,9 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+
+  // Start cleanup job for unverified users (runs every hour)
+  startCleanupScheduler(1);
 });
 
 // Handle unhandled promise rejections

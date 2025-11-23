@@ -34,15 +34,29 @@ exports.register = async (req, res) => {
     });
 
     // Generate verification token and send email
-    let emailSent = false;
-    if (isSESConfigured()) {
-      const verificationToken = user.generateEmailVerificationToken();
-      await user.save({ validateBeforeSave: false });
-
-      const emailResult = await sendVerificationEmail(user, verificationToken);
-      emailSent = emailResult.success;
+    if (!isSESConfigured()) {
+      // In production, SES must be configured
+      return res.status(503).json({
+        success: false,
+        message: 'Email service is not configured. Please contact support.'
+      });
     }
 
+    const verificationToken = user.generateEmailVerificationToken();
+    await user.save({ validateBeforeSave: false });
+
+    const emailResult = await sendVerificationEmail(user, verificationToken);
+
+    if (!emailResult.success) {
+      // Delete the user if we couldn't send verification email
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.'
+      });
+    }
+
+    // Don't return token - user must verify email first
     res.status(201).json({
       success: true,
       data: {
@@ -50,12 +64,9 @@ exports.register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isEmailVerified: user.isEmailVerified,
-        token: generateToken(user._id)
+        isEmailVerified: false
       },
-      message: emailSent
-        ? 'Registration successful. Please check your email to verify your account.'
-        : 'Registration successful.'
+      message: 'Registration successful. Please check your email to verify your account.'
     });
   } catch (error) {
     res.status(400).json({
@@ -97,6 +108,16 @@ exports.login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
+      });
+    }
+
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Please verify your email before logging in. Check your inbox for the verification link.',
+        email: user.email
       });
     }
 
