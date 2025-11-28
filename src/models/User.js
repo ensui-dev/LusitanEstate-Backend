@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  // Language preference
+  preferredLanguage: {
+    type: String,
+    enum: ['en', 'pt'],
+    default: 'en'
+  },
   // Email verification fields
   isEmailVerified: {
     type: Boolean,

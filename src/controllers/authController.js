@@ -12,7 +12,7 @@ const { isSESConfigured } = require('../config/ses');
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, role, phone, preferredLanguage } = req.body;
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
@@ -30,7 +30,8 @@ exports.register = async (req, res) => {
       email,
       password,
       role,
-      phone
+      phone,
+      preferredLanguage: preferredLanguage || 'en'
     });
 
     // Generate verification token and send email
@@ -129,6 +130,7 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
         isEmailVerified: user.isEmailVerified,
+        preferredLanguage: user.preferredLanguage,
         token: generateToken(user._id)
       }
     });
@@ -168,8 +170,16 @@ exports.updateProfile = async (req, res) => {
       name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,
-      profilePicture: req.body.profilePicture
+      profilePicture: req.body.profilePicture,
+      preferredLanguage: req.body.preferredLanguage
     };
+
+    // Remove undefined fields
+    Object.keys(fieldsToUpdate).forEach(key => {
+      if (fieldsToUpdate[key] === undefined) {
+        delete fieldsToUpdate[key];
+      }
+    });
 
     const user = await User.findByIdAndUpdate(req.user._id, fieldsToUpdate, {
       new: true,
