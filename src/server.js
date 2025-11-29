@@ -17,7 +17,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 
 // Connect to database
-connectDB();
+// Connect to database
+// connectDB(); // Moved to start server block
 
 // Initialize express app
 const app = express();
@@ -77,18 +78,26 @@ app.get('/', (req, res) => {
 app.use(errorHandler);
 
 // Start server
+// Start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+if (require.main === module) {
+  // Connect to database only if running directly
+  connectDB();
 
-  // Start cleanup job for unverified users (runs every hour)
-  startCleanupScheduler(1);
-});
+  const server = app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
-});
+    // Start cleanup job for unverified users (runs every hour)
+    startCleanupScheduler(1);
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err, promise) => {
+    console.log(`Error: ${err.message}`);
+    // Close server & exit process
+    server.close(() => process.exit(1));
+  });
+}
+
+module.exports = app;

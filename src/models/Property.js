@@ -164,7 +164,7 @@ const propertySchema = new mongoose.Schema({
       }
     }],
     validate: {
-      validator: function(images) {
+      validator: function (images) {
         return images && images.length > 0;
       },
       message: 'At least one property image is required'
@@ -243,7 +243,7 @@ const propertySchema = new mongoose.Schema({
 });
 
 // Pre-save hook to auto-calculate squareFeet from squareMeters
-propertySchema.pre('save', function(next) {
+propertySchema.pre('save', function (next) {
   if (this.squareMeters && !this.squareFeet) {
     // 1 square meter = 10.764 square feet
     this.squareFeet = Math.round(this.squareMeters * 10.764);
@@ -271,7 +271,7 @@ propertySchema.index({ price: 1 });
 propertySchema.index({ approvalStatus: 1, status: 1 });
 propertySchema.index({ agency: 1, status: 1 });
 propertySchema.index({ agent: 1, status: 1 });
-propertySchema.index({ slug: 1 });
+
 propertySchema.index({ isFeatured: -1, createdAt: -1 });
 
 // Text index for search
