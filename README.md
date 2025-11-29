@@ -12,6 +12,8 @@ A comprehensive RESTful API backend for managing real estate listings in Portuga
 - **Agency Management System** with subscription tiers and verification
 - **Advanced Property Filtering** by district, type, price, features
 - **MongoDB Atlas** ready with connection string configuration
+- **AWS S3 Integration** - Secure image storage for properties and profiles
+- **AWS SES Integration** - Transactional emails (welcome, verification, reset password)
 - **Fly.io Deployment** ready with included configuration
 
 ## 📋 Prerequisites
@@ -21,6 +23,7 @@ Before you begin, ensure you have the following installed:
 - **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js)
 - **MongoDB Atlas Account** (free tier available) - [Sign up here](https://www.mongodb.com/cloud/atlas)
+- **AWS Account** - For S3 (storage) and SES (email)
 - **Git** - [Download here](https://git-scm.com/)
 
 ## 🛠️ Installation & Setup
@@ -125,6 +128,21 @@ JWT_EXPIRE=30d
 # Development: http://localhost:3000
 # Production: https://your-frontend.netlify.app
 CLIENT_URL=http://localhost:3000
+
+# AWS S3 Configuration (for image uploads)
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET_NAME=your-bucket-name
+
+# AWS SES Configuration (for email)
+AWS_SES_REGION=eu-west-1
+AWS_SES_FROM_EMAIL=noreply@lusitanestate.com
+AWS_SES_FROM_NAME=LusitanEstate
+AWS_SES_REPLY_TO_EMAIL=suporte@lusitanestate.com
+
+# Email Verification
+EMAIL_VERIFICATION_EXPIRES=24h
 ```
 
 **IMPORTANT:**
@@ -260,6 +278,14 @@ Visit `http://localhost:5000` in your browser. You should see:
 | POST | `/api/favorites/properties/:id` | Add to favorites | Private |
 | DELETE | `/api/favorites/properties/:id` | Remove from favorites | Private |
 
+### Uploads (`/api/upload`)
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | `/api/upload/property-images` | Upload property images (max 10) | Private |
+| POST | `/api/upload/profile-image` | Upload profile image | Private |
+| DELETE | `/api/upload/delete-image` | Delete image | Private |
+
 ## 🧪 Testing the API
 
 ### Using cURL
@@ -391,42 +417,6 @@ Real-Estate-CMS-Backend/
 │   ├── config/
 │   │   └── database.js          # MongoDB connection
 │   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── propertyController.js
-│   │   ├── agentController.js
-│   │   ├── agencyController.js
-│   │   ├── adminController.js
-│   │   ├── inquiryController.js
-│   │   ├── reviewController.js
-│   │   └── favoriteController.js
-│   ├── middleware/
-│   │   ├── auth.js              # JWT & authorization
-│   │   ├── validation.js
-│   │   └── errorHandler.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Property.js
-│   │   ├── Agent.js
-│   │   ├── Agency.js
-│   │   ├── Settings.js
-│   │   ├── Inquiry.js
-│   │   ├── Review.js
-│   │   └── Favorite.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── propertyRoutes.js
-│   │   ├── agentRoutes.js
-│   │   ├── agencyRoutes.js
-│   │   ├── adminRoutes.js
-│   │   ├── inquiryRoutes.js
-│   │   ├── reviewRoutes.js
-│   │   └── favoriteRoutes.js
-│   ├── utils/
-│   │   ├── generateToken.js
-│   │   └── portugueseUtils.js   # IMT calculator, districts
-│   └── server.js                # Express app setup
-├── .env.example
-├── .gitignore
 ├── package.json
 ├── fly.toml                     # Fly.io deployment config
 ├── BACKEND-DEPLOYMENT.md        # Deployment guide
@@ -449,6 +439,8 @@ flyctl launch
 flyctl secrets set MONGODB_URI="your_mongodb_connection_string"
 flyctl secrets set JWT_SECRET="your_generated_jwt_secret"
 flyctl secrets set CLIENT_URL="https://your-frontend.netlify.app"
+flyctl secrets set AWS_ACCESS_KEY_ID="your_key"
+flyctl secrets set AWS_SECRET_ACCESS_KEY="your_secret"
 
 # Deploy
 flyctl deploy
@@ -466,6 +458,11 @@ Your API will be live at: `https://your-app-name.fly.dev`
 | `JWT_SECRET` | Yes | JWT signing secret (min 32 chars) | Generate with crypto |
 | `JWT_EXPIRE` | No | JWT expiration time | `30d` (default) |
 | `CLIENT_URL` | Yes | Frontend URL for CORS | `http://localhost:3000` or production URL |
+| `AWS_ACCESS_KEY_ID` | Yes | AWS Access Key | `AKIA...` |
+| `AWS_SECRET_ACCESS_KEY` | Yes | AWS Secret Key | `wJalr...` |
+| `AWS_REGION` | Yes | AWS Region | `us-east-1` |
+| `AWS_S3_BUCKET_NAME` | Yes | S3 Bucket Name | `my-real-estate-bucket` |
+| `AWS_SES_FROM_EMAIL` | Yes | Verified SES Email | `noreply@example.com` |
 
 ## 🐛 Troubleshooting
 
