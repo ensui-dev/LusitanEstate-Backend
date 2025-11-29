@@ -6,7 +6,7 @@ const { checkAWSConfig } = require('../middleware/upload');
 // @desc    Get system health status
 // @route   GET /api/health
 // @access  Public
-exports.getHealthStatus = async (req, res) => {
+const getHealthStatus = async (req, res) => {
     try {
         const health = {
             status: 'healthy',
