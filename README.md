@@ -543,7 +543,7 @@ This project is licensed under the MIT License.
 ## 📞 Support
 
 For issues, questions, or contributions:
-- **GitHub Issues:** [Create an issue](https://github.com/ensui-dev/Real-Estate-CMS-Backend/issues)
+- **GitHub Issues:** [Create an issue](https://github.com/ensui-dev/LusitanEstate-Backend/issues)
 
 ## 🙏 Acknowledgments
 
@@ -556,4 +556,4 @@ For issues, questions, or contributions:
 
 **Built for the Portuguese real estate market with ❤️**
 
-Need the frontend? Check out the [Frontend Repository](https://github.com/ensui-dev/Real-Estate-CMS-Frontend)
+Need the frontend? Check out the [Frontend Repository](https://github.com/ensui-dev/LusitanEstate-Frontend)
